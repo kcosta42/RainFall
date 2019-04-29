@@ -12,7 +12,7 @@ gdb> r
    0x8048ed4 <main+20>:	call   0x8049710 <atoi>
 => 0x8048ed9 <main+25>:	cmp    eax,0x1a7
    0x8048ede <main+30>:	jne    0x8048f58 <main+152>
-# We can see that the next instruction compare the return value of atoi against 0x1a7=473
+# We can see that the next instruction compare the return value of atoi against 0x1a7=423
 gdb> p $eax=0x1a7
 # After some step we see the program use `execv` to launch a new shell
 $> cat /home/user/level1/.pass
