@@ -13,10 +13,12 @@ void p(void)
     _exit(1);
   }
   puts(s);
-  return (strdup(s));
+  strdup(s);
+  return;
 }
 
 void main(void)
 {
-  return (p());
+  p();
+  return;
 }
