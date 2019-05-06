@@ -3,18 +3,17 @@
 class N {
 
 public:
-  N(int val)
+  N(int value)
   {
-    *this = 0x8048848;
-    *(this + 0x68) = val;
+    this->n = value;
   }
 
   N operator+(N &rhs) {
-    return *(&rhs + 0x68) + *(this + 0x68);
+    return N(rhs.n + this->n);
   }
 
   N operator-(N &rhs) {
-    return *(this + 0x68) - *(&rhs + 0x68);
+    return N(this->n - rhs.n);
   }
 
   void setAnnotation(char *str)
@@ -22,26 +21,30 @@ public:
     size_t len;
 
     len = strlen(str);
-    memcpy(this + 4, str, len);
+    memcpy(this->str, str, len);
     return;
   }
+
+private:
+  int n;
+  char *str;
 };
 
 
 int main(int argc,char **argv)
 {
-  N *object;
-  N *special;
+  N *five;
+  N *six;
   int ret;
 
   if (argc < 2)
     _exit(1);
 
-  object = new N(5);
-  special = new N(6);
+  five = new N(5);
+  six = new N(6);
 
-  obj->setAnnotation(argv[1]);
+  five->setAnnotation(argv[1]);
 
-  ret = (***special)(special, object);
+  ret = (***six)(six, five);
   return ret;
 }

