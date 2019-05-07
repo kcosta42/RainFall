@@ -3,18 +3,9 @@
 class N {
 
 public:
-  N(int value)
-  {
-    this->n = value;
-  }
-
-  N operator+(N &rhs) {
-    return N(rhs.n + this->n);
-  }
-
-  N operator-(N &rhs) {
-    return N(this->n - rhs.n);
-  }
+  N(int value) { this->n = value; }
+  N operator+(N &rhs) { return N(rhs.n + this->n); }
+  N operator-(N &rhs) { return N(this->n - rhs.n); }
 
   void setAnnotation(char *str)
   {

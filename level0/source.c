@@ -25,5 +25,5 @@ int main(int argc, char **argv)
     execv("/bin/sh", arg);
   }
   else
-    write(1, "No !\n", 5);
+    fwrite("No !\n", 1, 5, stderr);
 }

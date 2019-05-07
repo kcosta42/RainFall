@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 
-void p(void)
+int p(void)
 {
-  unsigned int eip;
+  void *eip;
   char s[76];
 
   fflush(stdout);
   gets(s);
-  if ((eip & 0xb0000000) == 0xb0000000) {
+  if ((eip & 0xb0000000) == 0xb0000000)
+  {
     printf("(%p)\n", eip);
     _exit(1);
   }
@@ -17,8 +18,8 @@ void p(void)
   return;
 }
 
-void main(void)
+int main(void)
 {
   p();
-  return;
+  return 0;
 }

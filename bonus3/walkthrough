@@ -1,0 +1,27 @@
+$> strings bonus3 | less
+[...]
+/home/user/end/.pass
+/bin/sh
+[...]
+
+# Since there is a call to fopen we can assume the programm open the '.pass' file
+   0x08048513 <+31>:	call   0x8048410 <fopen@plt>
+# Then read it
+   0x0804856f <+123>:	call   0x80483d0 <fread@plt>
+
+# The program call atoi on our first argument ...
+# ... then put a '\0' at that emplacement in the '.pass' buffer
+   0x08048584 <+144>:	call   0x8048430 <atoi@plt>
+   0x08048589 <+149>:	mov    BYTE PTR [esp+eax*1+0x18],0x0
+
+# It then call strcmp to compare the '.pass' buffer (with '\0') against our first argument
+   0x080485da <+230>:	call   0x80483b0 <strcmp@plt>
+   0x080485df <+235>:	test   eax,eax
+
+# If the comparaison succeed we get a shell
+   0x080485fa <+262>:	call   0x8048420 <execl@plt>
+
+# Since `"" == '\0'` and `atoi("") == 0`
+$> ./bonus3 ""
+> cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c

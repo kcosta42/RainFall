@@ -3,14 +3,12 @@
 
 void p(char *s,char *msg)
 {
-  char *pcVar1;
   char buff[4104];
 
   puts(msg);
   read(0, buff, 4096);
 
-  pcVar1 = strchr(buff, '\n');
-  *pcVar1 = 0;
+  *strchr(buff, '\n') = 0;
 
   strncpy(s, buff, 20);
   return;
@@ -25,6 +23,8 @@ void pp(char *s)
   p(str2, " - ");
 
   strcpy(s, str1);
+	s[strlen(s)] = 32;
+
   strcat(s, str2);
   return;
 }

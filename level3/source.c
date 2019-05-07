@@ -6,17 +6,18 @@ void v(void)
 {
   char s[520];
 
-  fgets(s, 0x200, stdin);
+  fgets(s, 512, stdin);
   printf(s);
-  if (m == 0x40) {
-    fwrite("Wait what?!\n", 1, 0xc, stdout);
+  if (m == 64)
+  {
+    fwrite("Wait what?!\n", 1, 12, stdout);
     system("/bin/sh");
   }
   return;
 }
 
-void main(void)
+int main(void)
 {
   v();
-  return;
+  return 0;
 }

@@ -12,17 +12,16 @@ void n(void)
 {
   char s[520];
 
-  fgets(s, 0x200, stdin);
+  fgets(s, 512, stdin);
   p(s);
-  if (m == 0x1025544) {
+  if (m == 16930116)
     system("/bin/cat /home/user/level5/.pass");
-  }
+
   return;
 }
 
-
-void main(void)
+int main(void)
 {
   n();
-  return;
+  return 0;
 }

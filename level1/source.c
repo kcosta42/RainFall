@@ -3,7 +3,7 @@
 
 void run(void)
 {
-  fwrite("Good... Wait what?\n", 1, 0x13, stdout);
+  fwrite("Good... Wait what?\n", 1, 19, stdout);
   system("/bin/sh");
   return;
 }
