@@ -16,7 +16,7 @@ int main(int argc,char **argv)
   char *s2;
   FILE *fs;
 
-  s1 = (char *)malloc(8)
+  s1 = (char *)malloc(8);
   *s1 = 1;
 
   s2 = (char *)malloc(8);

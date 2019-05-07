@@ -16,33 +16,30 @@ int main(void)
       break;
 
     // This is a pseudocode
-    switch (input)
+    if (strncmp(input, "auth ", 5) == 0)
     {
-      case "auth ":
-        auth = (char *)malloc(4);
-        char *authName = (input + 5);
+      auth = (char *)malloc(4);
+      char *authName = (input + 5);
 
-        if (strlen(authName) < 31)
-          strcpy(auth, authName);
-        break;
-
-      case "reset":
-        if (auth)
-          free(auth);
-        break;
-
-      case "service":
-        service = strdup(input + 7);
-        break;
-
-      case "login":
-        if ((&auth + 32) == &service)
-          system("/bin/sh");
-        else
-          fwrite("Password:\n", 1, 10, stdout);
-        break;
+      if (strlen(authName) < 31)
+        strcpy(auth, authName);
     }
-
+    else if (strncmp(input, "reset", 5) == 0)
+    {
+      if (auth)
+        free(auth);
+    }
+    else if (strncmp(input, "service", 7) == 0)
+    {
+        service = strdup(input + 7);
+    }
+    else if (strncmp(input, "login", 5) == 0)
+    {
+      if ((&auth + 32) == &service)
+        system("/bin/sh");
+      else
+        fwrite("Password:\n", 1, 10, stdout);
+    }
   } while (true);
   return 0;
 }
