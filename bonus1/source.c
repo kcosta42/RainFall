@@ -14,10 +14,7 @@ int main(int argc,char **argv)
     if (var == 1464814662)
       execl("/bin/sh", "sh", 0);
 
-    var = 0;
+    return 0;
   }
-  else
-    var = 1;
-
-  return var;
+  return 1;
 }
